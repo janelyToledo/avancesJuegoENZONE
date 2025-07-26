@@ -373,3 +373,35 @@ def game_loop():
             enemies.append({'x': x, 'y': y, 'speed': enemy_speed, 'tipo': tipo})
             last_enemy_spawn = now  # Actualiza último tiempo de aparición
 
+            # Movimiento de enemigos hacia el jugador
+        for enemy in enemies[:]:
+            dx = player_pos[0] - enemy['x']
+            dy = player_pos[1] - enemy['y']
+            dist = math.hypot(dx, dy)
+            if dist != 0:
+                dx /= dist
+                dy /= dist
+            enemy['x'] += dx * enemy['speed']
+            enemy['y'] += dy * enemy['speed']
+
+        # Colisiones entre enemigos y jugador / proyectiles
+        for enemy in enemies[:]:
+
+            # Si un enemigo está cerca del jugador, le quita salud
+            if math.hypot(enemy['x'] - player_pos[0], enemy['y'] - player_pos[1]) < 40:
+                player_health -= 1
+
+            # Detecta si un proyectil impacta al enemigo
+            for p in projectiles[:]:
+                if math.hypot(enemy['x'] - p['x'], enemy['y'] - p['y']) < 30:
+                    if enemy in enemies:
+                        # Añade una mancha de sangre
+                        blood_stains.append({'x': enemy['x'], 'y': enemy['y'], 'alpha': 255})
+
+                        # Sonido de muerte del enemigo
+                        muerte_zombie_sound.play()
+                        # Cuando un enemigo es alcanzado por un proyectil:
+                        enemies.remove(enemy)  # Elimina al enemigo impactado de la lista de enemigos
+                        projectiles.remove(p)  # Elimina el proyectil que impactó para que no siga activo
+                        player_xp += 10        # Incrementa la experiencia del jugador
+
