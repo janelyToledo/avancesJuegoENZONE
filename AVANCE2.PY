@@ -405,3 +405,83 @@ def game_loop():
                         projectiles.remove(p)  # Elimina el proyectil que impactó para que no siga activo
                         player_xp += 10        # Incrementa la experiencia del jugador
 
+                         # Comprobar si el jugador ha subido de nivel
+                        if player_xp >= xp_to_next:
+                            player_level += 1       # Aumenta el nivel del jugador
+                            player_xp = 0           # Reinicia la experiencia acumulada
+                            xp_to_next += 25        # Incrementa la experiencia necesaria para el siguiente nivel
+                        
+                            # Según el nivel y nivel_actual, activa al jefe y configura sus atributos
+                            if player_level == 2 and nivel_actual == 1:
+                                jefe_activo = True
+                                jefe_proyectiles.clear()  # Limpia proyectiles previos del jefe
+                                jefe_pos = [random.randint(100, WIDTH - 100), random.randint(100, HEIGHT - 100)]  # Posición aleatoria inicial del jefe
+                                jefe_vida = jefe_max_vida = 8
+                                jefe_speed = 2
+                                jefe_danio = 10
+                                jefe_disparo_delay = 1200
+                                enemies.clear()  # Limpia enemigos normales al aparecer jefe
+
+                            elif player_level == 3 and nivel_actual == 2:# Configuración similar para jefe en nivel 2 con dificultad aumentada
+                                jefe_activo = True
+                                jefe_proyectiles.clear()
+                                jefe_pos = [random.randint(100, WIDTH - 100), random.randint(100, HEIGHT - 100)]
+                                jefe_vida = jefe_max_vida = 15
+                                jefe_speed = 3
+                                jefe_danio = 15
+                                jefe_disparo_delay = 800
+                                enemies.clear()
+                             
+                            if player_level == 4 and nivel_actual == 3: # Configuración para jefe en nivel 3 con parámetros aún más agresivos
+                                jefe_activo = True
+                                jefe_proyectiles.clear()
+                                jefe_pos = [random.randint(100, WIDTH - 100), random.randint(100, HEIGHT - 100)]
+                                jefe_vida = jefe_max_vida = 15 
+                                jefe_speed = 3 
+                                jefe_danio = 15 
+                                jefe_disparo_delay = 600 
+                                enemies.clear() 
+                        
+                            # Actualización de la habilidad actual basada en nivel del jugador
+                        if player_level == 2 and habilidad_actual < 2:
+                            habilidad_actual = 2
+                        elif player_level >= 3 and habilidad_actual < 3:
+                            habilidad_actual = 3
+
+        # Movimiento del jefe hacia la posición del jugador
+        if jefe_activo:
+            dx = player_pos[0] - jefe_pos[0]
+            dy = player_pos[1] - jefe_pos[1]
+            dist = math.hypot(dx, dy)
+            if dist != 0:
+                dx /= dist  # Normalizar vector dirección para mantener velocidad constante
+                dy /= dist
+            jefe_pos[0] += dx * jefe_speed
+            jefe_pos[1] += dy * jefe_speed
+
+            if now - ultimo_disparo_jefe >= jefe_disparo_delay:# Control del disparo del jefe, respetando delay entre disparos
+                jdx = player_pos[0] - jefe_pos[0]
+                jdy = player_pos[1] - jefe_pos[1]
+                dist = math.hypot(jdx, jdy)
+                if dist != 0:
+                    jdx /= dist
+                    jdy /= dist
+                jefe_proyectiles.append({'x': jefe_pos[0], 'y': jefe_pos[1], 'dx': jdx, 'dy': jdy})# Agregar un nuevo proyectil que va hacia el jugador
+                ultimo_disparo_jefe = now
+
+               # Actualizar la posición de los proyectiles del jefe y manejar colisiones
+            for j in jefe_proyectiles[:]:  # Iterar sobre copia para poder modificar la lista
+                j['x'] += j['dx'] * 5  # Mover proyectil en X
+                j['y'] += j['dy'] * 5  # Mover proyectil en Y
+                # Si el proyectil sale de la pantalla, eliminarlo
+                if not (0 <= j['x'] <= WIDTH and 0 <= j['y'] <= HEIGHT):
+                    jefe_proyectiles.remove(j)
+                # Si el proyectil colisiona con el jugador, reducir su salud y eliminar proyectil
+                elif math.hypot(j['x'] - player_pos[0], j['y'] - player_pos[1]) < player_radius:
+                    player_health -= jefe_danio
+                    jefe_proyectiles.remove(j)
+
+            if math.hypot(jefe_pos[0] - player_pos[0], jefe_pos[1] - player_pos[1]) < player_radius + 25: # Si el jefe colisiona físicamente con el jugador, causar daño menor
+                player_health -= jefe_danio // 2
+
+
