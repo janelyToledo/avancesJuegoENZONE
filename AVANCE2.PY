@@ -483,5 +483,34 @@ def game_loop():
 
             if math.hypot(jefe_pos[0] - player_pos[0], jefe_pos[1] - player_pos[1]) < player_radius + 25: # Si el jefe colisiona físicamente con el jugador, causar daño menor
                 player_health -= jefe_danio // 2
+            for p in projectiles[:]: # Detectar colisiones entre proyectiles del jugador y el jefe
+                if math.hypot(jefe_pos[0] - p['x'], jefe_pos[1] - p['y']) < 30:
+                    jefe_vida -= 1
+                    projectiles.remove(p)
+
+            if jefe_vida <= 0:
+                # Añadir mancha de sangre en la posición del jefe al morir
+                blood_stains.append({'x': jefe_pos[0], 'y': jefe_pos[1], 'alpha': 255})
+                jefe_activo = False # Desactivar jefe para que deje de moverse y atacar
+                jefe_proyectiles.clear() # Eliminar proyectil que impactó
+                nivel_actual += 1
+                if nivel_actual <= max_nivel:
+                    mostrar_historia(nivel_actual)
+                enemy_speed += 0.7# Aumentar dificultad progresivamente modificando la velocidad y frecuencia de enemigos
+                enemy_spawn_delay = max(400, enemy_spawn_delay - 250)
+                
+                if nivel_actual == 2:    # Ajustar habilidad y velocidad del jugador según el nivel actual
+                    habilidad_actual = 2
+                    player_speed = base_speed
+                elif nivel_actual == 3:
+                    habilidad_actual = 3
+                    player_speed = base_speed * 1.8 
+                else:
+                    habilidad_actual = 3
+                    player_speed = base_speed * 1.8
+                # Activar jefe al iniciar nivel 3
+                if nivel_actual == 3 and not jefe_activo:
+                    jefe_activo = True
+                    jefe_vida = jefe_max_vida
 
 
