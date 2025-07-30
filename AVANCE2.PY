@@ -513,4 +513,26 @@ def game_loop():
                     jefe_activo = True
                     jefe_vida = jefe_max_vida
 
+                ralentizar_enemigos = False # Se desactiva la habilidad de ralentizar cada vez que se avanza de nivel
+        # Activación de la habilidad de ralentizar enemigos presionando ESPACIO,
+        # solo si está en nivel 2, la habilidad no está activa aún y el jugador es nivel 2 o más
+        if habilidad_actual == 2 and not ralentizar_enemigos and player_level >= 2:
+            if keys[pygame.K_SPACE]:
+                ralentizar_enemigos = True
+                enemy_speed = enemy_base_speed / 2.5 # Disminuye la velocidad de los enemigos temporalmente
+                ralentizador_fin = now + 5000 # Duración del efecto: 5 segundos
+
+        if habilidad_actual == 3:
+            player_speed = base_speed * 1.8  # Aumenta la velocidad en habilidad 3 (fase avanzada)
+        elif habilidad_actual == 1 or habilidad_actual == 2:
+            player_speed = base_speed  # Velocidad normal en habilidad 1 o 2
+
+
+        # Dibujar jugador centrado
+        screen.blit(personaje_img, (player_pos[0] - personaje_img.get_width() // 2, player_pos[1] - personaje_img.get_height() // 2))
+
+        # Dibujar enemigos centrados
+        for enemy in enemies:
+            img = enemigo_imgs[enemy['tipo']]
+            screen.blit(img, (enemy['x'] - img.get_width() // 2, enemy['y'] - img.get_height() // 2))
 
